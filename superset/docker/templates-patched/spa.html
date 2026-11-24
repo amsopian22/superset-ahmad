@@ -1,0 +1,223 @@
+{#
+  Licensed to the Apache Software Foundation (ASF) under one or more
+  contributor license agreements. See the NOTICE file distributed with this work
+  for additional information regarding copyright ownership. The ASF licenses this
+  file to you under the Apache License, Version 2.0 (the "License"); you may not
+  use this file except in compliance with the License. You may obtain a copy of
+  the License at http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software distributed
+  under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
+  CONDITIONS OF ANY KIND, either express or implied. See the License for the
+  specific language governing permissions and limitations under the License.
+#}
+
+<!DOCTYPE html>
+<html>
+  {% import 'appbuilder/general/lib.html' as lib %}
+  {% from 'superset/partials/asset_bundle.html' import css_bundle, js_bundle with context %}
+  {% import "superset/macros.html" as macros %}
+  {% set favicons = appbuilder.app.config['FAVICONS'] %}
+
+  <head>
+    <title>
+      {% block title %}
+        {% if title %}
+          {{ title }}
+        {% else %}
+          {{ default_title | default(appbuilder.app_name | default('Executive Analytics')) }}
+        {% endif %}
+      {% endblock %}
+    </title>
+
+    {% block head_meta %}
+      <link rel="manifest" href="{{ assets_prefix }}/static/assets/pwa-manifest.json?v=4">
+    {% endblock %}
+
+    <style>
+      {% if entry == 'embedded' %}
+      html, body {
+        background: transparent !important;
+      }
+      {% else %}
+      body {
+        background: {{ theme_tokens.colorBgBase | default('#fff') }};
+        color: #000;
+      }
+      {% endif %}
+    </style>
+
+    {% if dark_theme_bg and entry != 'embedded' %}
+    <script nonce="{{ macros.get_nonce() }}">
+      (function() {
+        try {
+          var mode = localStorage.getItem('superset-theme-mode');
+          var shouldBeDark = mode === 'dark' ||
+            (mode !== 'default' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+          if (shouldBeDark) {
+            var s = document.createElement('style');
+            s.textContent = 'body{background:{{ dark_theme_bg }};color:#fff}';
+            document.head.appendChild(s);
+          }
+        } catch(e) {}
+      })();
+    </script>
+    {% endif %}
+
+    {% block head_css %}
+      {% for favicon in favicons %}
+        <link
+          rel="{{ favicon.rel if favicon.rel else 'icon' }}"
+          type="{{ favicon.type if favicon.type else 'image/png' }}"
+          {% if favicon.sizes %}sizes="{{ favicon.sizes }}"{% endif %}
+          href="{{ '' if favicon.href.startswith('http') else assets_prefix }}{{ favicon.href }}"
+        />
+      {% endfor %}
+
+      <link
+        rel="preload"
+        type="text/css"
+        href="{{ assets_prefix }}/static/appbuilder/css/flags/flags16.css"
+        as="style"
+      />
+
+      <!-- Modern Civic Dual-Mode Executive Theme & Typography -->
+      <link rel="preconnect" href="https://fonts.googleapis.com">
+      <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap">
+      <link rel="stylesheet" type="text/css" href="{{ assets_prefix }}/static/assets/modern-executive-theme.css?v=20261124-civic-dual-v3">
+      <script nonce="{{ macros.get_nonce() }}">
+        (function () {
+          function syncThemeMode() {
+            try {
+              var mode = localStorage.getItem('superset-theme-mode');
+              var dark = mode === 'dark' ||
+                (mode !== 'default' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+              document.documentElement.setAttribute('data-theme-mode', dark ? 'dark' : 'light');
+            } catch (e) {}
+          }
+          syncThemeMode();
+          window.addEventListener('storage', syncThemeMode);
+          try {
+            var originalSetItem = Storage.prototype.setItem;
+            Storage.prototype.setItem = function (key, value) {
+              var result = originalSetItem.apply(this, arguments);
+              if (this === window.localStorage && key === 'superset-theme-mode') syncThemeMode();
+              return result;
+            };
+            window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', syncThemeMode);
+          } catch (e) {}
+        }());
+      </script>
+
+    {% endblock %}
+
+    {{ css_bundle(assets_prefix, 'theme') }}
+    {% if entry %}
+      {{ css_bundle(assets_prefix, entry) }}
+    {% endif %}
+
+    {{ js_bundle(assets_prefix, 'theme') }}
+
+    {% block head_js %}
+      {% include "head_custom_extra.html" %}
+    {% endblock %}
+
+    <input
+      type="hidden"
+      name="csrf_token"
+      id="csrf_token"
+      value="{{ csrf_token() if csrf_token else '' }}"
+    />
+  </head>
+
+  <body {% if standalone_mode %}class="standalone"{% endif %}>
+
+    {% block body %}
+      <div id="app" data-bootstrap="{{ bootstrap_data }}">
+        {% set tokens = theme_tokens | default({}) %}
+        {% set spinner_style = "width: 70px; height: auto; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);" %}
+
+        {% if spinner_svg %}
+          <!-- Inline SVG: Either custom theme SVG or default spinner -->
+          <div style="{{ spinner_style }}">
+            {{ spinner_svg | safe }}
+          </div>
+        {% elif tokens.get('brandSpinnerUrl') %}
+          <!-- Custom URL from theme -->
+          <img
+            src="{{ tokens.brandSpinnerUrl }}"
+            alt=""
+            aria-label="Loading"
+            style="{{ spinner_style }}"
+          />
+        {% endif %}
+      </div>
+    {% endblock %}
+
+    {% block tail_js %}
+      {% if entry %}
+        {{ js_bundle(assets_prefix, entry) }}
+      {% endif %}
+      {% include "tail_js_custom_extra.html" %}
+    {% endblock %}
+
+    <script nonce="{{ macros.get_nonce() }}">
+      document.addEventListener('DOMContentLoaded', function () {
+        var preloadLinks = document.querySelectorAll('link[rel="preload"][as="style"]');
+        preloadLinks.forEach(function (link) {
+          link.rel = 'stylesheet';
+        });
+      });
+    </script>
+  
+<script id="waiting-load-data-template-replacer">
+(function () {
+  function replaceWaitingText(root) {
+    try {
+      var walker = document.createTreeWalker(root || document.body, NodeFilter.SHOW_TEXT);
+      var nodes = [];
+      while (walker.nextNode()) nodes.push(walker.currentNode);
+      nodes.forEach(function (node) {
+        var text = node.nodeValue || '';
+        if (/Waiting on\s+.+/i.test(text) || /Waiting on database\.\.\./i.test(text)) {
+          node.nodeValue = 'Waiting Load Data';
+        }
+      });
+    } catch (e) {}
+  }
+  function start() {
+    replaceWaitingText(document.body);
+    new MutationObserver(function () {
+      replaceWaitingText(document.body);
+    }).observe(document.body, { childList: true, subtree: true, characterData: true });
+    setInterval(function () { replaceWaitingText(document.body); }, 500);
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start);
+  else start();
+})();
+</script>
+
+<script id="parent-size-init-trigger">
+(function () {
+  function triggerResize() {
+    try { window.dispatchEvent(new Event('resize')); } catch(e) {}
+  }
+  if (document.readyState === 'complete') {
+    setTimeout(triggerResize, 300);
+    setTimeout(triggerResize, 1000);
+  } else {
+    window.addEventListener('load', function () {
+      setTimeout(triggerResize, 300);
+      setTimeout(triggerResize, 1000);
+    });
+  }
+})();
+</script>
+
+
+
+
+
+</body>
+</html>

@@ -1,0 +1,115 @@
+x-superset-image: &superset-image apache/superset:latest
+x-superset-depends-on: &superset-depends-on
+  - db
+  - redis
+x-superset-app-healthcheck: &superset-app-healthcheck
+  test: ["CMD-SHELL", "curl -f http://localhost:8088/health || exit 1"]
+  interval: 30s
+  timeout: 10s
+  retries: 5
+  start_period: 60s
+x-superset-process-healthcheck: &superset-process-healthcheck
+  test: ["CMD-SHELL", "grep -azq celery /proc/[0-9]*/cmdline"]
+  interval: 30s
+  timeout: 10s
+  retries: 5
+  start_period: 60s
+x-superset-volumes: &superset-volumes
+  # /app/pythonpath_docker will be appended to the PYTHONPATH in the final container
+  - ./superset/docker:/app/docker
+  - superset_home:/app/superset_home
+  - ./superset/docker/templates-patched/spa.html:/app/superset/templates/superset/spa.html:ro
+  - ./superset/docker/assets-patched/7e6e5031a28b6756a45f.waiting-load-data.chunk.js:/app/superset/static/assets/7e6e5031a28b6756a45f.waiting-load-data.chunk.js:ro
+  - ./superset/docker/assets-patched/embedded.ca778c9454042915ed9e.entry.js:/app/superset/static/assets/embedded.ca778c9454042915ed9e.entry.js:ro
+  - ./superset/docker/assets-patched/spa.75f58c053056fc51f1b6.entry.js:/app/superset/static/assets/spa.75f58c053056fc51f1b6.entry.js:ro
+  - ./superset/docker/assets-patched/7e6e5031a28b6756a45f.chunk.js:/app/superset/static/assets/7e6e5031a28b6756a45f.chunk.js:ro
+  - ./superset/docker/assets-patched/9059.b2f889ad23bd80f99e2a.entry.js:/app/superset/static/assets/9059.b2f889ad23bd80f99e2a.entry.js:ro
+  - ./superset/docker/assets/branding:/app/superset/static/assets/images/branding:ro
+  - ./superset/docker/assets/modern-executive-theme.css:/app/superset/static/assets/modern-executive-theme.css:ro
+
+
+services:
+  superset:
+    env_file: superset/docker/.env-non-dev
+    image: *superset-image
+    container_name: superset_app
+    command: ["/app/docker/docker-bootstrap.sh", "app-gunicorn"]
+    user: "root"
+    restart: unless-stopped
+    ports:
+      - 5054:8088
+    depends_on: *superset-depends-on
+    volumes: *superset-volumes
+    healthcheck: *superset-app-healthcheck
+
+  db:
+    env_file: superset/docker/.env-non-dev
+    image: postgres:16
+    container_name: superset_db
+    restart: unless-stopped
+    ports:
+      - "5051:5432"
+    volumes:
+      - db_home:/var/lib/postgresql/data
+
+  superset-init:
+    image: *superset-image
+    container_name: superset_init
+    command: ["/app/docker/docker-init.sh"]
+    env_file: superset/docker/.env-non-dev
+    depends_on: *superset-depends-on
+    user: "root"
+    volumes: *superset-volumes
+
+  superset-worker:
+    image: *superset-image
+    container_name: superset_worker
+    command: ["/app/docker/docker-bootstrap.sh", "worker"]
+    env_file: superset/docker/.env-non-dev
+    restart: unless-stopped
+    depends_on: *superset-depends-on
+    user: "root"
+    volumes: *superset-volumes
+    healthcheck: *superset-process-healthcheck
+
+  superset-worker-beat:
+    image: *superset-image
+    container_name: superset_worker_beat
+    command: ["/app/docker/docker-bootstrap.sh", "beat"]
+    env_file: superset/docker/.env-non-dev
+    restart: unless-stopped
+    depends_on: *superset-depends-on
+    user: "root"
+    volumes: *superset-volumes
+    healthcheck: *superset-process-healthcheck
+
+  redis:
+    image: redis:latest
+    expose:
+      - 6379
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 30s
+      retries: 50
+    restart: unless-stopped
+
+  portainer:
+    image: portainer/portainer-ce:latest
+    ports:
+      - "9443:9443"
+    volumes:
+      - portainer-data:/data
+      - /var/run/docker.sock:/var/run/docker.sock
+    restart: unless-stopped
+
+volumes:
+  superset_home:
+  db_home:
+    driver: local # Define the driver and options under the volume name
+    driver_opts:
+      type: none
+      device: ./superset/data
+      o: bind
+  db:
+  portainer-data:

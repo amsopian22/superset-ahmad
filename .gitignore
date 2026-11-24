@@ -1,0 +1,23 @@
+# Environment & secrets (jangan pernah commit kredensial)
+.env
+.env.*
+!.env*.example
+superset/docker/.env-non-dev
+superset/docker/pythonpath_dev/superset_config_local.py
+superset/docker/pythonpath_dev/superset_config_docker.py
+*.pem
+*.key
+
+# Runtime database & backup
+superset/data/
+backups/
+ui-preview/
+
+# Python & local caches
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.venv/
+.DS_Store
+*.bak*
