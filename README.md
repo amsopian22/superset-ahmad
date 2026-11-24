@@ -1,8 +1,24 @@
-# Template Konfigurasi Apache Superset 6.1.0 — Modern Civic Dual-Mode v3
+# Template Konfigurasi & Tema Apache Superset 6.1.0 — Modern Civic Dual-Mode v3
 
-Repositori ini adalah **template konfigurasi, tema antarmuka, dan stack Docker Compose** untuk **Apache Superset 6.1.0**. Repositori ini sengaja disimpan dalam keadaan **bersih**: **tanpa logo instansi, dashboard, chart, dump database, kredensial, maupun contoh bawaan (`SUPERSET_LOAD_EXAMPLES=no`)**.
+Repositori ini ditujukan **khusus untuk konfigurasi dan tema UI (`Modern Civic Dual-Mode v3`)** beserta stack Docker Compose untuk **Apache Superset 6.1.0**. Repositori ini sengaja disimpan dalam keadaan **bersih**: **tanpa logo instansi, dashboard, chart, dump database, kredensial, maupun contoh bawaan (`SUPERSET_LOAD_EXAMPLES=no`)**.
 
 Tag rilis template: `v3-civic-dual-20261124`
+
+## Pratinjau Tampilan
+
+### Tampilan Awal (Login)
+
+| Mode Terang (Light) | Mode Gelap (Dark) |
+| :---: | :---: |
+| ![Tampilan Login Mode Terang](docs/screenshots/login-light.png) | ![Tampilan Login Mode Gelap](docs/screenshots/login-dark.png) |
+
+### Tampilan Utama (Home)
+
+| Mode Terang (Light) | Mode Gelap (Dark) |
+| :---: | :---: |
+| ![Tampilan Home Mode Terang](docs/screenshots/home-light.png) | ![Tampilan Home Mode Gelap](docs/screenshots/home-dark.png) |
+
+> Halaman **Home** (`/superset/welcome/`) tampil kosong secara default (`SUPERSET_LOAD_EXAMPLES=no`) dengan branding generik `Executive Analytics` dan ikon bawaan yang bebas diganti sesuai kebutuhan Anda.
 
 ## Ringkasan Fitur & Tampilan
 
@@ -36,6 +52,12 @@ Tag rilis template: `v3-civic-dual-20261124`
 ```text
 .
 ├── docker-compose.yaml
+├── docs/
+│   └── screenshots/
+│       ├── home-dark.png
+│       ├── home-light.png
+│       ├── login-dark.png
+│       └── login-light.png
 └── superset/
     └── docker/
         ├── .env-non-dev.example
@@ -94,7 +116,7 @@ Tag rilis template: `v3-civic-dual-20261124`
    SUPERSET_FAVICON_URL=/static/assets/images/branding/favicon.png
    ```
 
-3. Muat ulang layanan web Superset (`docker compose up -d superset`). Tanpa konfigurasi tambahan, Superset akan menggunakan logo dan favicon bawaan secara otomatis.
+3. Muat ulang layanan web Superset (`docker compose up -d superset`). Tanpa konfigurasi tambahan, Superset akan menggunakan ikon bawaan `/static/assets/images/favicon.png` secara otomatis.
 
 ## Catatan Keamanan
 

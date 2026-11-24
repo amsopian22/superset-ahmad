@@ -206,7 +206,7 @@ D3_FORMAT = {
 # ==============================================================================
 APP_NAME = get_env_variable("SUPERSET_APP_NAME", "Executive Analytics")
 APP_ICON = get_env_variable(
-    "SUPERSET_APP_ICON", "/static/assets/images/superset-logo-horiz.png"
+    "SUPERSET_APP_ICON", "/static/assets/images/favicon.png"
 )
 APP_ICON_WIDTH = int(get_env_variable("SUPERSET_APP_ICON_WIDTH", "135"))
 LOGO_TARGET_PATH = get_env_variable("SUPERSET_LOGO_TARGET_PATH", "/superset/welcome/")
