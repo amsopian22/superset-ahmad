@@ -12,6 +12,8 @@ Tag rilis template: `v3-civic-dual-20261124`
 | :---: | :---: |
 | ![Tampilan Login Mode Terang](docs/screenshots/login-light.png) | ![Tampilan Login Mode Gelap](docs/screenshots/login-dark.png) |
 
+> Tampilan login menggunakan layout **Split-Screen Civic Eksekutif** dengan panel identitas di sisi kiri, kartu login di sisi kanan, responsif bertumpuk di tablet/mobile, serta memakai logo bawaan **Apache Superset** (`/static/assets/images/favicon.png`).
+
 ### Tampilan Utama (Home)
 
 | Mode Terang (Light) | Mode Gelap (Dark) |
@@ -39,7 +41,7 @@ Tag rilis template: `v3-civic-dual-20261124`
 
 3. **Cache-Busting Aset Frontend & Patch JS**
    - `FRONTEND_ASSET_VERSION = "civic-dual-v3-20261124-1"` pada `FLASK_APP_MUTATOR` menyisipkan parameter `?v=...` ke aset bundle di `FRONTEND_ASSETS_TO_BUST` agar pembaruan di balik proxy/CDN langsung termuat.
-   - `spa.html` memuat stylesheet tema dengan query versi `?v=20261124-civic-dual-v3`.
+   - `spa.html` memuat stylesheet tema dengan query versi `?v=20261125-login-civic-v4` dan tata letak login Split-Screen Civic Eksekutif yang menyesuaikan `APP_ICON` (default `/static/assets/images/favicon.png`) serta `APP_NAME`.
    - Direktori `superset/docker/assets-patched/` memuat 5 berkas bundle JS generik yang di-mount read-only ke `/app/superset/static/assets/`.
 
 4. **Cache Redis Multi-Tier & Embedding Terkonfigurasi**

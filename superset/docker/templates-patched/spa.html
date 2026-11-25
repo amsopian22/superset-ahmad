@@ -85,7 +85,7 @@
       <link rel="preconnect" href="https://fonts.googleapis.com">
       <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
       <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap">
-      <link rel="stylesheet" type="text/css" href="{{ assets_prefix }}/static/assets/modern-executive-theme.css?v=20261124-civic-dual-v3">
+      <link rel="stylesheet" type="text/css" href="{{ assets_prefix }}/static/assets/modern-executive-theme.css?v=20261125-login-civic-v4">
       <script nonce="{{ macros.get_nonce() }}">
         (function () {
           function syncThemeMode() {
@@ -218,6 +218,104 @@
 
 
 
+
+{% set brand_icon = appbuilder.app.config.get('APP_ICON') or '/static/assets/images/favicon.png' %}
+{% set brand_icon_src = ('' if brand_icon.startswith('http') else assets_prefix) ~ brand_icon %}
+{% set brand_name = appbuilder.app.config.get('APP_NAME') or (appbuilder.app_name | default('Executive Analytics')) %}
+<script id="civic-login-split-enhancer" data-brand-icon="{{ brand_icon_src }}" data-brand-name="{{ brand_name }}" nonce="{{ macros.get_nonce() }}">
+(function () {
+  var scriptEl = document.currentScript || document.getElementById('civic-login-split-enhancer');
+  var BRAND_ICON = (scriptEl && scriptEl.getAttribute('data-brand-icon')) || '/static/assets/images/favicon.png';
+  var BRAND_NAME = (scriptEl && scriptEl.getAttribute('data-brand-name')) || 'Executive Analytics';
+  var ITEMS = [
+    ['Dashboard Kinerja & Operasional', 'Pemantauan metrik strategis organisasi secara terstruktur dan berkala.'],
+    ['Eksplorasi SQL & Dataset', 'Akses kueri dan himpunan data terverifikasi untuk analisis mandiri.'],
+    ['Mode Terang & Gelap', 'Atur tampilan tema kapan saja melalui menu di sudut kanan atas.']
+  ];
+
+  function createEl(tag, cls, text) {
+    var el = document.createElement(tag);
+    if (cls) el.className = cls;
+    if (text) el.textContent = text;
+    return el;
+  }
+
+  function enhanceLogin() {
+    try {
+      if (window.location.pathname.indexOf('/login') !== 0) return false;
+      var container = document.querySelector('[data-test="login-form"]');
+      if (!container) return false;
+      if (!container.querySelector('.civic-login-brand')) {
+        var aside = createEl('aside', 'civic-login-brand');
+        aside.setAttribute('aria-label', 'Identitas Portal');
+
+        var top = createEl('div', 'civic-login-top');
+        var org = createEl('div', 'civic-login-org');
+        var logo = document.createElement('img');
+        logo.src = BRAND_ICON;
+        logo.alt = BRAND_NAME;
+        logo.width = 48;
+        logo.height = 48;
+        org.appendChild(logo);
+        org.appendChild(createEl('div', 'civic-login-org-name', BRAND_NAME));
+        top.appendChild(org);
+
+        top.appendChild(createEl('h1', 'civic-login-title', 'Portal Analitik Eksekutif'));
+        top.appendChild(createEl(
+          'p',
+          'civic-login-desc',
+          'Akses terpusat untuk pemantauan indikator kinerja, eksplorasi dataset, dan pelaporan eksekutif.'
+        ));
+        aside.appendChild(top);
+
+        var list = createEl('ul', 'civic-login-list');
+        for (var i = 0; i < ITEMS.length; i++) {
+          var li = document.createElement('li');
+          li.appendChild(createEl('strong', '', ITEMS[i][0]));
+          li.appendChild(createEl('span', '', ITEMS[i][1]));
+          list.appendChild(li);
+        }
+        aside.appendChild(list);
+
+        aside.appendChild(createEl(
+          'div',
+          'civic-login-footer',
+          'Modern Civic Dual-Mode · Apache Superset'
+        ));
+
+        container.insertBefore(aside, container.firstChild);
+      }
+      if (container.getAttribute('data-civic-enhanced') !== 'true') {
+        container.setAttribute('data-civic-enhanced', 'true');
+      }
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  function init() {
+    if (window.location.pathname.indexOf('/login') !== 0) return;
+    enhanceLogin();
+    var root = document.getElementById('app') || document.body;
+    if (!root || typeof MutationObserver === 'undefined') return;
+    var obs = new MutationObserver(function () {
+      if (window.location.pathname.indexOf('/login') !== 0) {
+        obs.disconnect();
+        return;
+      }
+      enhanceLogin();
+    });
+    obs.observe(root, { childList: true, subtree: true });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+})();
+</script>
 
 </body>
 </html>
